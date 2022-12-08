@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/wbh1/grafana-sqlite-to-postgres/pkg/postgresql"
@@ -87,6 +88,11 @@ func main() {
 
 	// Import the now-sanitized dump file into Postgres
 	if err := db.ImportDump(dumpPath); err != nil {
+		d1 := []byte(fmt.Sprintf("%v", err))
+		if err := os.WriteFile("/tmp/ft.logs", d1, 0644); err != nil {
+			fmt.Println("failed to write logs to file")
+		}
+
 		log.Fatalf("❌ %v - failed to import dump file to Postgres.", err)
 	}
 	log.Infoln("✅ Imported dump file to Postgres")

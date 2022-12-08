@@ -64,6 +64,13 @@ func (db *DB) ImportDump(dumpFile string) error {
 	sqlStmts := strings.Split(string(file), ";\n")
 
 	for _, stmt := range sqlStmts {
+
+		//// hotfix - workaround not null constraint for is_public in dashboard table
+		//isDashboard := strings.Contains(stmt, "INSERT INTO \"dashboard\"")
+		//if isDashboard {
+		//	stmt = fmt.Sprintf("%s,0)", stmt[:len(stmt)-1]) // append default false is_public
+		//}
+
 		if _, err := db.conn.Exec(stmt); err != nil {
 			// We can safely ignore "duplicate key value violates unique constraint" errors.
 			if strings.Contains(err.Error(), "duplicate key") {
