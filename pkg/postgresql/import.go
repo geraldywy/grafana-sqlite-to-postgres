@@ -64,14 +64,7 @@ func (db *DB) ImportDump(dumpFile string) error {
 	sqlStmts := strings.Split(string(file), ";\n")
 
 	for _, stmt := range sqlStmts {
-		debug := strings.Contains(stmt, "INSERT INTO \"user\"")
-		if debug {
-			fmt.Println("gerald ->", stmt)
-		}
 		if _, err := db.conn.Exec(stmt); err != nil {
-			if debug {
-				fmt.Println("gerald debug err ->", err)
-			}
 			// We can safely ignore "duplicate key value violates unique constraint" errors.
 			if strings.Contains(err.Error(), "duplicate key") {
 				continue
@@ -141,14 +134,16 @@ func (db *DB) prepareTables() (errorEncountered bool) {
 		}
 	}
 
-	// Delete the org that gets auto-generated the first time Grafana runs.
-	stmt := "DELETE FROM org WHERE id=1"
-	db.log.Debugln("Executing: ", stmt)
-	if _, err := db.conn.Exec(stmt); err != nil {
-		db.log.Errorf("%v %v", err.Error(), stmt)
-		errorEncountered = true
+	// Delete the org and admin that gets auto-generated the first time Grafana runs.
+	unwanted := []string{"org", "user"}
+	for _, tbl := range unwanted {
+		stmt := fmt.Sprintf("DELETE FROM \"%s\" WHERE id=1", tbl)
+		db.log.Debugln("Executing: ", stmt)
+		if _, err := db.conn.Exec(stmt); err != nil {
+			db.log.Errorf("%v %v", err.Error(), stmt)
+			errorEncountered = true
+		}
 	}
-
 	return
 }
 
