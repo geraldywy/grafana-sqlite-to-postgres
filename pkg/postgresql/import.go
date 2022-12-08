@@ -64,7 +64,14 @@ func (db *DB) ImportDump(dumpFile string) error {
 	sqlStmts := strings.Split(string(file), ";\n")
 
 	for _, stmt := range sqlStmts {
+		debug := strings.Contains(stmt, "INSERT INTO \"user\"")
+		if debug {
+			fmt.Println("gerald ->", stmt)
+		}
 		if _, err := db.conn.Exec(stmt); err != nil {
+			if debug {
+				fmt.Println("gerald debug err ->", err)
+			}
 			// We can safely ignore "duplicate key value violates unique constraint" errors.
 			if strings.Contains(err.Error(), "duplicate key") {
 				continue
